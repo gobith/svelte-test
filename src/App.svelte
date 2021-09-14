@@ -1,53 +1,34 @@
 <script>
-  import Router from "svelte-spa-router";
-  import { wrap } from "svelte-spa-router/wrap";
-  import { push } from "svelte-spa-router";
+  import { onMount } from "svelte";
+  import paths from "./path";
 
-  import Users from "./Users.svelte";
-  import Categories from "./Categories.svelte";
-  import Events from "./Events.svelte";
+  onMount(() => {
 
-  let isAdmin = true;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.scale(0.5 , 0.5)
 
-  const toggleIsAdmin = () => {
-    isAdmin = !isAdmin;
-    push("/");
-  };
+    paths.forEach((path) => {
+        ctx.stroke(new Path2D(path.d))
+    })
 
-  const routes = {
-    "/users": wrap({
-      component: Users,
-      props: { foo: "bar" },
-      conditions: [
-        (detail) => {
-          console.log(detail);
-          return isAdmin;
-        },
-      ],
-    }),
-    "/categories": wrap({
-      component: Categories,
-      props: { foo: "bar" },
-    }),
-    "/events": wrap({
-      component: Events,
-      props: { foo: "bar" },
-    }),
-  };
+
+  });
 </script>
 
-<ul>
-  <li>
-    <a href="/">Home</a>
-    <a href="#/users">Users</a>
-    <a href="#/categories">Categories</a>
-    <a href="#/events">Events</a>
-  </li>
-</ul>
-<button on:click={toggleIsAdmin}>toggle is admin</button>
-<div>{isAdmin}</div>
-
-<Router {routes} />
+<canvas id="canvas" width=2000 height=2000 />
 
 <style>
+  :global(* body) {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+  }
+  :global(body) {
+    height: 100vh;
+    width: 100vw;
+  
+  }
+
+  
 </style>
