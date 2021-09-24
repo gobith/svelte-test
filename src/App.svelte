@@ -31,6 +31,10 @@
 
   console.log(grid.areaDots);
 
+  grid.areas.forEach((area) => {
+    area["path"] = new Path2D(area.d)
+  });
+
   onMount(() => {
     const draw = () => {
       const canvas = document.getElementById("canvas");
@@ -38,7 +42,7 @@
       ctx.resetTransform();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setLineDash([10, 6]);
-      ctx.scale(0.5, 0.5);
+      ctx.scale(1, 1);
       ctx.lineWidth = 2;
 
       ctx.strokeStyle = "black";
@@ -98,14 +102,14 @@
       });
     };
 
-    //draw();
-    drawGrid();
+    draw();
+    //drawGrid();
 
     const mouseclick = (event) => {
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "hsla(0, 100%, 70%, 0.3)";
-      grid.areaDots.forEach((areaDots) => {
+      grid.areas.forEach((areaDots) => {
         if (ctx.isPointInPath(areaDots.path, event.offsetX, event.offsetY)) {
           console.log(areaDots.ids);
           ctx.fill(areaDots.path)
