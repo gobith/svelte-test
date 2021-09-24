@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import paths from "./path";
   import areas from "./areas";
+  import grid from "./grid";
 
   paths.forEach((path) => {
     path["path"] = new Path2D(path.d);
@@ -13,83 +14,114 @@
     area["path"] = new Path2D(area.d);
   });
 
-  onMount(() => {
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+  grid.areaDots.forEach((areaDots) => {
+    let isFirst = true;
+    let path2D = new Path2D();
 
-    const mousemove = (event) => {
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 4;
-
-      paths.forEach((path) => {
-        if (ctx.isPointInPath(path.path, event.offsetX, event.offsetY)) {
-          ctx.stroke(path.path);
-          console.log(path.id);
-          path.selected = true;
-        }
-      });
-      selectedPaths = paths.filter((path) => {
-        return path.selected;
-      });
-    };
-
-    const keydown = (event) => {
-      console.log(event);
-      if (!event.keyCode == 32) {
-        return;
+    areaDots.nodes.forEach((dot) => {
+      if (isFirst) {
+        path2D.moveTo(dot.x, dot.y);
+        isFirst = false;
+      } else {
+        path2D.lineTo(dot.x, dot.y);
       }
+    });
+    areaDots["path"] = path2D;
+  });
 
-      let innerText = document.getElementById("input").innerText;
-      console.log(innerText);
-      copyToClipboard(`; add: (GeoBRArea new pathIds: { ${innerText} }; name: '')`);
-      paths.forEach((path) => {
-        path.selected = false;
-      });
-      draw();
-    };
+  console.log(grid.areaDots);
 
+  onMount(() => {
     const draw = () => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
       ctx.resetTransform();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setLineDash([10, 6]);
-      ctx.scale(0.3, 0.3);
+      ctx.scale(0.5, 0.5);
       ctx.lineWidth = 2;
 
       ctx.strokeStyle = "black";
       ctx.fillStyle = "gray";
 
-      areas.forEach((area) => {
-        ctx.fill(area.path);
-      });
+      // areas.forEach((area) => {
+      //   ctx.fill(area.path);
+      // });
 
       paths.forEach((path) => {
         ctx.stroke(path.path);
       });
     };
-    draw();
 
-    canvas.addEventListener("mousemove", mousemove);
-    document.addEventListener("keydown", keydown);
+    const drawGrid = () => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.resetTransform();
+      ctx.scale(1, 1);
+      ctx.setLineDash([0, 0]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "green";
+      ctx.fillStyle = "hsla(0, 100%, 70%, 0.3)";
 
-    const copyToClipboard = (str) => {
-      const el = document.createElement("textarea");
-      el.value = str;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
+      grid.areaDots.forEach((areaDots) => {
+        ctx.fill(areaDots.path);
+        //ctx.stroke();
+      });
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "blue";
+
+      grid.lines.forEach((line) => {
+        ctx.fillStyle = "blue";
+        ctx.beginPath();
+        ctx.moveTo(line.a.x, line.a.y);
+        ctx.lineTo(line.b.x, line.b.y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(line.center.x, line.center.y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.fillText(line.id, line.center.x - 6, line.center.y + 4);
+      });
+
+      grid.dots.forEach((dot) => {
+        ctx.fillStyle = "green";
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, 10, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.fillText(dot.id, dot.x, dot.y + 4);
+        ctx.fill();
+      });
     };
+
+    //draw();
+    drawGrid();
+
+    const mouseclick = (event) => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "hsla(0, 100%, 70%, 0.3)";
+      grid.areaDots.forEach((areaDots) => {
+        if (ctx.isPointInPath(areaDots.path, event.offsetX, event.offsetY)) {
+          console.log(areaDots.ids);
+          ctx.fill(areaDots.path)
+        }
+      });
+    };
+
+    canvas.addEventListener("click", mouseclick);
   });
 </script>
 
-<canvas id="canvas" width="550" height="1200" />
+<canvas id="canvas" width="10000" height="10000" />
 <div id="input">
-
   {#each selectedPaths as path}
     <span>{path.id} .</span>
   {/each}
-
-
 </div>
 
 <style>
